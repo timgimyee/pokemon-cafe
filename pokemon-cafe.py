@@ -8,7 +8,6 @@ from selenium.webdriver.support.ui import Select, WebDriverWait
 import argparse
 import os
 import pickle
-import random
 import re
 import time
 import cafe
@@ -336,7 +335,6 @@ for key, val in want.items():
 # Get driver.
 chrome_options = Options()
 chrome_options.add_experimental_option("detach", True)
-chromedriver = "chromedriver"
 driver = webdriver.Chrome(options=chrome_options)
 
 if args.agree:

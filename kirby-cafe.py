@@ -10,7 +10,6 @@ from selenium.webdriver.support.ui import Select
 from selenium.webdriver.support.ui import WebDriverWait
 import argparse
 import os
-import random
 import re
 import sys
 import time
@@ -257,7 +256,6 @@ if days:
 # Get driver.
 chrome_options = Options()
 chrome_options.add_experimental_option("detach", True)
-chromedriver = "chromedriver"
 driver = webdriver.Chrome(options=chrome_options)
 
 # Starting at the top of the hour.
