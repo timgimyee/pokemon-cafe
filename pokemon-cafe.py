@@ -6,11 +6,12 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.support.ui import Select, WebDriverWait
 import argparse
+import cafe
+import captcha
 import os
 import pickle
 import re
 import time
-import cafe
 
 # The [prev-month] year-month [next-month] row above the calendar:
 #
@@ -130,6 +131,24 @@ def security_check():
             print(f"Skip security, text found: '{text}'")
             return
 
+    # Solve captcha.
+    if captcha.load_classifier():
+        captcha.solve_captcha(driver)
+    else:
+        user_solve_captcha()
+
+    # Save cookies so we can skip security check next time.
+    if args.cookies:
+        try:
+            with open(cookies_file, 'wb') as file:
+                pickle.dump(driver.get_cookies(), file)
+            print("Saving cookies")
+        except:
+            print("Couldn't save cookies")
+
+def user_solve_captcha():
+    """ Wait for user to solve captcha. """
+
     #   <button class="amzn-captcha-verify-button btn btn-primary" id="amzn-captcha-verify-button" type="button" style="display: flex; padding: 5px 30px;">
     #   Begin<img src="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iOSIgaGVpZ2h0PSIxNCIgdmlld0JveD0iMCAwIDkgMTQiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+IDxwYXRoIGZpbGwtcnVsZT0iZXZlbm9kZCIgY2xpcC1ydWxlPSJldmVub2RkIiBkPSJNMS43ODQ2NyAwTDAuNTAwMjA1IDEuMjg0NDZMNi4yMTUwMyA3TDAuNTAwMjA1IDEyLjcxNTVMMS43ODQ2NyAxNEw4Ljc4NDY3IDdMMS43ODQ2NyAwWiIgZmlsbD0iYmxhY2siLz4gPC9zdmc+IA==" alt="begin" style="margin-left: 5px;">
     #   </button>
@@ -174,15 +193,6 @@ def security_check():
         EC.invisibility_of_element_located((By.XPATH, lang))
     )
     print("Puzzle solved!")
-
-    # Save cookies so we can skip security check next time.
-    if args.cookies:
-        try:
-            with open(cookies_file, 'wb') as file:
-                pickle.dump(driver.get_cookies(), file)
-            print("Saving cookies")
-        except:
-            print("Couldn't save cookies")
 
 def set_month(target_month):
     """ Set month on calendar. """
@@ -331,6 +341,9 @@ for key, val in want.items():
         want[key] = cafe.list_and_ranges(val)
         if not want[key]:
             raise Exception(f"Bad --{key}={val}")
+
+# Pre-load classifier before opening browser.
+captcha.load_classifier()
 
 # Get driver.
 chrome_options = Options()
